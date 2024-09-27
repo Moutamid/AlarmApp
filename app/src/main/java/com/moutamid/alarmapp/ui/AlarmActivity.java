@@ -1,8 +1,11 @@
 package com.moutamid.alarmapp.ui;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
-import android.util.Base64;
 import android.util.Log;
 
 import androidx.activity.EdgeToEdge;
@@ -11,26 +14,19 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.fxn.stash.Stash;
-import com.google.gson.JsonArray;
 import com.moutamid.alarmapp.R;
 import com.moutamid.alarmapp.adapter.AlarmsAdapter;
 import com.moutamid.alarmapp.databinding.ActivityAlarmBinding;
 import com.moutamid.alarmapp.models.AlarmModel;
-import com.moutamid.alarmapp.models.ApiData;
+import com.moutamid.alarmapp.utilis.AlarmSyncWorker;
 import com.moutamid.alarmapp.utilis.Constants;
-import com.moutamid.alarmapp.utilis.VolleySingleton;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class AlarmActivity extends AppCompatActivity {
     ActivityAlarmBinding binding;
@@ -56,6 +52,17 @@ public class AlarmActivity extends AppCompatActivity {
         binding.alarmsRC.setLayoutManager(new LinearLayoutManager(this));
         binding.alarmsRC.setHasFixedSize(false);
 
+        PeriodicWorkRequest alarmSyncWork =
+                new PeriodicWorkRequest.Builder(AlarmSyncWorker.class, 30, TimeUnit.SECONDS)
+                        .build();
+
+        WorkManager.getInstance(getApplicationContext()).enqueue(alarmSyncWork);
+
+        // Broadcast the new data
+        Intent intent = new Intent("com.moutamid.alarmapp.ACTION_UPDATE_ALARMS");
+        sendBroadcast(intent);
+
+/*
         RequestQueue requestQueue = VolleySingleton.getInstance(this).getRequestQueue();
 
         ApiData data = (ApiData) Stash.getObject(Constants.API_DATA, ApiData.class);
@@ -97,6 +104,32 @@ public class AlarmActivity extends AppCompatActivity {
                 return params;
             }
         };
-        requestQueue.add(objectRequest);
+        requestQueue.add(objectRequest);*/
     }
+
+    BroadcastReceiver alarmUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Fetch the latest data from Stash or database and update RecyclerView
+            Log.d(TAG, "onReceive: UPDATED");
+            ArrayList<AlarmModel> updatedList = Stash.getArrayList(Constants.ALARM_LIST, AlarmModel.class);
+            AlarmsAdapter adapter = new AlarmsAdapter(AlarmActivity.this, updatedList);
+            binding.alarmsRC.setAdapter(adapter);
+        }
+    };
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(alarmUpdateReceiver, new IntentFilter("com.moutamid.alarmapp.ACTION_UPDATE_ALARMS"), Context.RECEIVER_NOT_EXPORTED);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(alarmUpdateReceiver);
+    }
+
 }

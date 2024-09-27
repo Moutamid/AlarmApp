@@ -35,6 +35,7 @@ dependencies {
     implementation(libs.stash)
     implementation(libs.code.scanner)
     implementation(libs.volley)
+    implementation(libs.work.runtime)
 
     implementation(libs.appcompat)
     implementation(libs.material)
