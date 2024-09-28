@@ -1,7 +1,9 @@
 package com.moutamid.alarmapp.ui;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -15,15 +17,16 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.budiyev.android.codescanner.CodeScanner;
 import com.fxn.stash.Stash;
-import com.moutamid.alarmapp.models.ApiData;
-import com.moutamid.alarmapp.utilis.Constants;
 import com.moutamid.alarmapp.R;
 import com.moutamid.alarmapp.databinding.ActivityMainBinding;
+import com.moutamid.alarmapp.models.ApiData;
+import com.moutamid.alarmapp.utilis.Constants;
 
 public class MainActivity extends AppCompatActivity {
     ActivityMainBinding binding;
     private CodeScanner mCodeScanner;
     private static final String TAG = "MainActivity";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,11 +50,32 @@ public class MainActivity extends AppCompatActivity {
             finish();
         });
 
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
-            shouldShowRequestPermissionRationale(android.Manifest.permission.CAMERA);
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.CAMERA}, 1);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS);
+                shouldShowRequestPermissionRationale(Manifest.permission.CAMERA);
+                shouldShowRequestPermissionRationale(Manifest.permission.READ_MEDIA_AUDIO);
+                shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE);
+                ActivityCompat.requestPermissions(this, new String[]{
+                        Manifest.permission.POST_NOTIFICATIONS,
+                        Manifest.permission.CAMERA,
+                        Manifest.permission.READ_MEDIA_AUDIO,
+                        Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+            } else {
+                mCodeScanner.startPreview();
+            }
         } else {
-            mCodeScanner.startPreview();
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE);
+                shouldShowRequestPermissionRationale(Manifest.permission.CAMERA);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA}, 1);
+            } else {
+                mCodeScanner.startPreview();
+            }
         }
     }
 

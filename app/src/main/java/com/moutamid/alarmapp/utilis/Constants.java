@@ -16,6 +16,11 @@ import java.net.URL;
 public class Constants {
     public static final String API_DATA = "API_DATA";
     public static final String ALARM_LIST = "ALARM_LIST";
+    public static final String Standard = "Standard";
+    public static final String High = "High";
+    public static final String Critical = "Critical";
+    public static final String Emergency = "Emergency";
+    public static final String System = "System";
 
     public static void checkApp(Activity activity) {
         String appName = "alarmapp";

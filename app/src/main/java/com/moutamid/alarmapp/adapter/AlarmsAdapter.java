@@ -36,10 +36,10 @@ public class AlarmsAdapter extends RecyclerView.Adapter<AlarmsAdapter.AlarmVH> {
         holder.title.setText(model.title);
         holder.description.setText(model.description);
 
-        String active = model.state > 0 ? "Active" : "Deactivate";
+        String active = model.enabled ? "Active" : "Deactivate";
         holder.enable.setText(active);
 
-        if (model.state > 0) {
+        if (model.enabled) {
             holder.isEnable.setCardBackgroundColor(context.getResources().getColor(R.color.green_dark));
         } else {
             holder.isEnable.setCardBackgroundColor(context.getResources().getColor(R.color.red));

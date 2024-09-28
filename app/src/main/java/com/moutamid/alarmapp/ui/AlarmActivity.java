@@ -1,18 +1,25 @@
 package com.moutamid.alarmapp.ui;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
@@ -22,6 +29,7 @@ import com.moutamid.alarmapp.R;
 import com.moutamid.alarmapp.adapter.AlarmsAdapter;
 import com.moutamid.alarmapp.databinding.ActivityAlarmBinding;
 import com.moutamid.alarmapp.models.AlarmModel;
+import com.moutamid.alarmapp.models.RingtoneModel;
 import com.moutamid.alarmapp.utilis.AlarmSyncWorker;
 import com.moutamid.alarmapp.utilis.Constants;
 
@@ -49,63 +57,45 @@ public class AlarmActivity extends AppCompatActivity {
             startActivity(new Intent(this, RingtonesActivity.class));
         });
 
+
         binding.alarmsRC.setLayoutManager(new LinearLayoutManager(this));
         binding.alarmsRC.setHasFixedSize(false);
 
-        PeriodicWorkRequest alarmSyncWork =
-                new PeriodicWorkRequest.Builder(AlarmSyncWorker.class, 30, TimeUnit.SECONDS)
-                        .build();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+                shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS);
+                shouldShowRequestPermissionRationale(Manifest.permission.READ_MEDIA_AUDIO);
+                shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE);
+                ActivityCompat.requestPermissions(this, new String[]{
+                        Manifest.permission.POST_NOTIFICATIONS,
+                        Manifest.permission.READ_MEDIA_AUDIO,
+                        Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+            }
+        } else {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+                shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+            }
+        }
 
+        PeriodicWorkRequest alarmSyncWork = new PeriodicWorkRequest.Builder(AlarmSyncWorker.class, 30, TimeUnit.SECONDS).build();
         WorkManager.getInstance(getApplicationContext()).enqueue(alarmSyncWork);
 
-        // Broadcast the new data
-        Intent intent = new Intent("com.moutamid.alarmapp.ACTION_UPDATE_ALARMS");
-        sendBroadcast(intent);
-
-/*
-        RequestQueue requestQueue = VolleySingleton.getInstance(this).getRequestQueue();
-
-        ApiData data = (ApiData) Stash.getObject(Constants.API_DATA, ApiData.class);
-        JsonObjectRequest objectRequest = new JsonObjectRequest(Request.Method.GET, data.link, null, response -> {
-            try {
-                JSONArray jsonArray = response.getJSONArray("data");
-                Log.d(TAG, "onCreate: size " + jsonArray.length());
-                ArrayList<AlarmModel> list = new ArrayList<>();
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject object = jsonArray.getJSONObject(i);
-                    AlarmModel model = new AlarmModel();
-                    model._id = object.getString("_id");
-                    model.title = object.getString("title");
-                    model.source = object.getString("source");
-                    model.description = object.getString("description");
-                    model.shortDescription = object.getString("shortDescription");
-                    model.alarmText = object.getString("alarmText");
-                    model.enabled = object.getBoolean("enabled");
-                    model.priority = object.getInt("priority");
-                    model.state = object.getInt("state");
-                    model.type = object.getInt("type");
-                    model.__v = object.getInt("__v");
-                    list.add(model);
-                }
-                AlarmsAdapter adapter = new AlarmsAdapter(this, list);
-                binding.alarmsRC.setAdapter(adapter);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }, error -> {
-            error.printStackTrace();
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                HashMap<String, String> params = new HashMap<>();
-                String creds = String.format("%s:%s", data.clientId, data.clientSecret);
-                String auth = "Basic " + Base64.encodeToString(creds.getBytes(), Base64.DEFAULT);
-                params.put("Authorization", auth);
-                return params;
-            }
-        };
-        requestQueue.add(objectRequest);*/
+//        RingtoneModel tone5 = (RingtoneModel) Stash.getObject(Constants.System, RingtoneModel.class);
+//        testRingtone(Uri.parse(tone5.tone));
     }
+
+    public void testRingtone(Uri ringtoneUri) {
+        Ringtone ringtone = RingtoneManager.getRingtone(this, ringtoneUri);
+        if (ringtone != null) {
+            ringtone.play();
+        } else {
+            Log.d(TAG, "Failed to get ringtone from URI");
+        }
+    }
+
 
     BroadcastReceiver alarmUpdateReceiver = new BroadcastReceiver() {
         @Override
@@ -121,15 +111,13 @@ public class AlarmActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(alarmUpdateReceiver, new IntentFilter("com.moutamid.alarmapp.ACTION_UPDATE_ALARMS"), Context.RECEIVER_NOT_EXPORTED);
-        }
+        LocalBroadcastManager.getInstance(this).registerReceiver(alarmUpdateReceiver, new IntentFilter("com.moutamid.alarmapp.ACTION_UPDATE_ALARMS"));
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(alarmUpdateReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(alarmUpdateReceiver);
     }
 
 }
