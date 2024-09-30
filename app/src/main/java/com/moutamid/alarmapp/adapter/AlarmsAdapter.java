@@ -4,12 +4,14 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.card.MaterialCardView;
 import com.moutamid.alarmapp.R;
 import com.moutamid.alarmapp.models.AlarmModel;
 
@@ -35,14 +37,19 @@ public class AlarmsAdapter extends RecyclerView.Adapter<AlarmsAdapter.AlarmVH> {
         AlarmModel model = list.get(holder.getAdapterPosition());
         holder.title.setText(model.title);
         holder.description.setText(model.description);
-
-        String active = model.enabled ? "Active" : "Deactivate";
-        holder.enable.setText(active);
-
-        if (model.enabled) {
-            holder.isEnable.setCardBackgroundColor(context.getResources().getColor(R.color.green_dark));
+        if (model.state == 0) {
+            holder.main.setCardBackgroundColor(context.getResources().getColor(R.color.green_light));
+        } else if (model.state == 1) {
+            holder.main.setCardBackgroundColor(context.getResources().getColor(R.color.red_light));
+        } else if (model.state == 2) {
+            holder.main.setCardBackgroundColor(context.getResources().getColor(R.color.yellow));
         } else {
-            holder.isEnable.setCardBackgroundColor(context.getResources().getColor(R.color.red));
+            holder.main.setCardBackgroundColor(context.getResources().getColor(R.color.grey));
+        }
+        if (model.enabled) {
+            holder.enable.setImageResource(R.drawable.bell);
+        } else {
+            holder.enable.setImageResource(R.drawable.bell_slash);
         }
     }
 
@@ -52,8 +59,10 @@ public class AlarmsAdapter extends RecyclerView.Adapter<AlarmsAdapter.AlarmVH> {
     }
 
     public class AlarmVH extends RecyclerView.ViewHolder {
-        TextView title, description, enable;
+        TextView title, description;
+        ImageView enable;
         CardView isEnable;
+        MaterialCardView main;
 
         public AlarmVH(@NonNull View itemView) {
             super(itemView);
@@ -61,6 +70,7 @@ public class AlarmsAdapter extends RecyclerView.Adapter<AlarmsAdapter.AlarmVH> {
             description = itemView.findViewById(R.id.description);
             enable = itemView.findViewById(R.id.enable);
             isEnable = itemView.findViewById(R.id.isEnable);
+            main = itemView.findViewById(R.id.main);
         }
     }
 

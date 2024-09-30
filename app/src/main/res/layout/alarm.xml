@@ -6,6 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="10dp"
     android:layout_marginBottom="10dp"
+    android:id="@+id/main"
     app:cardBackgroundColor="@color/grey"
     app:cardCornerRadius="12dp"
     app:cardElevation="0dp"
@@ -38,16 +39,14 @@
                 android:id="@+id/isEnable"
                 android:layout_marginStart="10dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="@color/green_dark">
+                app:cardBackgroundColor="@color/grey">
 
-                <TextView
+                <ImageView
                     android:id="@+id/enable"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:textSize="16sp"
-                    android:textColor="@color/white"
-                    tools:text="Active" />
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_margin="12dp"
+                    android:src="@drawable/bell_slash" />
 
             </androidx.cardview.widget.CardView>
 

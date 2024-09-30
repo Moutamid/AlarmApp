@@ -21,20 +21,16 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
 
 import com.fxn.stash.Stash;
 import com.moutamid.alarmapp.R;
 import com.moutamid.alarmapp.adapter.AlarmsAdapter;
 import com.moutamid.alarmapp.databinding.ActivityAlarmBinding;
 import com.moutamid.alarmapp.models.AlarmModel;
-import com.moutamid.alarmapp.models.RingtoneModel;
-import com.moutamid.alarmapp.utilis.AlarmSyncWorker;
+import com.moutamid.alarmapp.services.AlarmService;
 import com.moutamid.alarmapp.utilis.Constants;
 
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 public class AlarmActivity extends AppCompatActivity {
     ActivityAlarmBinding binding;
@@ -80,22 +76,12 @@ public class AlarmActivity extends AppCompatActivity {
             }
         }
 
-        PeriodicWorkRequest alarmSyncWork = new PeriodicWorkRequest.Builder(AlarmSyncWorker.class, 30, TimeUnit.SECONDS).build();
-        WorkManager.getInstance(getApplicationContext()).enqueue(alarmSyncWork);
-
-//        RingtoneModel tone5 = (RingtoneModel) Stash.getObject(Constants.System, RingtoneModel.class);
-//        testRingtone(Uri.parse(tone5.tone));
-    }
-
-    public void testRingtone(Uri ringtoneUri) {
-        Ringtone ringtone = RingtoneManager.getRingtone(this, ringtoneUri);
-        if (ringtone != null) {
-            ringtone.play();
-        } else {
-            Log.d(TAG, "Failed to get ringtone from URI");
+        if (Build.VERSION.SDK_INT >= 26) {
+            startForegroundService(new Intent(this, AlarmService.class));
+        }else {
+            startService(new Intent(this, AlarmService.class));
         }
     }
-
 
     BroadcastReceiver alarmUpdateReceiver = new BroadcastReceiver() {
         @Override

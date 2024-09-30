@@ -12,6 +12,7 @@
     <color name="text">#787574</color>
     <color name="red">#FF4141</color>
     <color name="red_light">#FEDDDD</color>
-    <color name="green_light">#D7FEB4</color>
+    <color name="green_light">#D9EBC6</color>
     <color name="green_dark">#55A700</color>
+    <color name="yellow">#FFFAD3</color>
 </resources>
