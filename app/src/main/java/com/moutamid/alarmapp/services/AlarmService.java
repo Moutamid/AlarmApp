@@ -55,6 +55,8 @@ public class AlarmService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         startForeground(NOTIFICATION_ID, createNotification());
+        context = this;
+        requestQueue = VolleySingleton.getInstance(getApplicationContext()).getRequestQueue();
         return START_STICKY;
     }
 
@@ -62,13 +64,13 @@ public class AlarmService extends Service {
         createNotificationChannel();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             return new Notification.Builder(this, CHANNEL_ID)
-                    .setContentTitle("Alarm Manager")
+                    .setContentTitle(getString(R.string.app_name))
                     .setContentText("Running in background...")
                     .setSmallIcon(R.mipmap.ic_launcher_round)
                     .build();
         } else {
             return new NotificationCompat.Builder(this, CHANNEL_ID)
-                    .setContentTitle("Alarm Manager")
+                    .setContentTitle(getString(R.string.app_name))
                     .setContentText("Running in background...")
                     .setSmallIcon(R.mipmap.ic_launcher_round)
                     .build();
@@ -109,13 +111,13 @@ public class AlarmService extends Service {
                     model.priority = object.getInt("priority");
                     model.state = object.getInt("state");
                     model.type = object.getInt("type");
+                    model.notificationId = object.getInt("notificationId");
                     model.__v = object.getInt("__v");
                     list.add(model);
 
-                    if (model.state != 0 && model.enabled)
-                        new NotificationHelper(getApplicationContext()).sendHighPriorityNotification(model.title, model.shortDescription, AlarmActivity.class, model.priority);
+                    if (model.enabled)
+                        new NotificationHelper(getApplicationContext()).sendHighPriorityNotification(model.title, model.shortDescription, AlarmActivity.class, model.priority, model.notificationId, model.state);
                 }
-
                 Stash.put(Constants.ALARM_LIST, list);
                 Intent intent = new Intent("com.moutamid.alarmapp.ACTION_UPDATE_ALARMS");
                 LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
@@ -143,8 +145,6 @@ public class AlarmService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        context = this;
-        requestQueue = VolleySingleton.getInstance(getApplicationContext()).getRequestQueue();
         startApiCallLoop();
     }
 
