@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -75,9 +76,11 @@ public class AlarmSyncWorker extends Worker {
                 Log.d(TAG, "Worker finished API call successfully at: " + System.currentTimeMillis());
             } catch (Exception e) {
                 e.printStackTrace();
+                Toast.makeText(context, "Error: " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             }
         }, error -> {
             error.printStackTrace();
+            Toast.makeText(context, "Error: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
         }) {
             @Override
             public Map<String, String> getHeaders() {
