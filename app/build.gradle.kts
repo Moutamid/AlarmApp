@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -12,7 +14,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-        setProperty("archivesBaseName", "AlarmApp-$versionName")
+        setProperty("archivesBaseName", "MSTC_Alarming-$versionName")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { viewBinding = true }
@@ -36,6 +38,10 @@ dependencies {
     implementation(libs.code.scanner)
     implementation(libs.volley)
     implementation(libs.work.runtime)
+
+    implementation(platform("com.google.firebase:firebase-bom:33.3.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-crashlytics")
 
     implementation(libs.appcompat)
     implementation(libs.material)

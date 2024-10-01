@@ -13,7 +13,7 @@
       "attributes": [],
       "versionCode": 1,
       "versionName": "1.0",
-      "outputFile": "AlarmApp-1.0-release.apk"
+      "outputFile": "MSTC_Alarming-1.0-release.apk"
     }
   ],
   "elementType": "File",
@@ -22,14 +22,14 @@
       "minApi": 28,
       "maxApi": 30,
       "baselineProfiles": [
-        "baselineProfiles/1/AlarmApp-1.0-release.dm"
+        "baselineProfiles/1/MSTC_Alarming-1.0-release.dm"
       ]
     },
     {
       "minApi": 31,
       "maxApi": 2147483647,
       "baselineProfiles": [
-        "baselineProfiles/0/AlarmApp-1.0-release.dm"
+        "baselineProfiles/0/MSTC_Alarming-1.0-release.dm"
       ]
     }
   ],

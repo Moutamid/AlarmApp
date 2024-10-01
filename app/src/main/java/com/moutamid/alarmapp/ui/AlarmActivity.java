@@ -53,9 +53,12 @@ public class AlarmActivity extends AppCompatActivity {
             startActivity(new Intent(this, RingtonesActivity.class));
         });
 
-
         binding.alarmsRC.setLayoutManager(new LinearLayoutManager(this));
         binding.alarmsRC.setHasFixedSize(false);
+
+        ArrayList<AlarmModel> updatedList = Stash.getArrayList(Constants.ALARM_LIST, AlarmModel.class);
+        AlarmsAdapter adapter = new AlarmsAdapter(AlarmActivity.this, updatedList);
+        binding.alarmsRC.setAdapter(adapter);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED &&

@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "AlarmApp"
+rootProject.name = "MSTC Alarming"
 include(":app")
