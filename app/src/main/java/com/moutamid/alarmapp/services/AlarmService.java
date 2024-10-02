@@ -54,8 +54,8 @@ public class AlarmService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        startForeground(NOTIFICATION_ID, createNotification());
         context = this;
+        startForeground(NOTIFICATION_ID, createNotification());
         requestQueue = VolleySingleton.getInstance(getApplicationContext()).getRequestQueue();
         return START_STICKY;
     }
@@ -92,54 +92,56 @@ public class AlarmService extends Service {
     }
 
     private void callAPI() {
-        Log.d(TAG, "callAPI: ");
         ApiData data = (ApiData) Stash.getObject(Constants.API_DATA, ApiData.class);
-        JsonObjectRequest objectRequest = new JsonObjectRequest(Request.Method.GET, data.link, null, response -> {
-            try {
-                JSONArray jsonArray = response.getJSONArray("data");
-                ArrayList<AlarmModel> list = new ArrayList<>();
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject object = jsonArray.getJSONObject(i);
-                    AlarmModel model = new AlarmModel();
-                    model._id = object.getString("_id");
-                    model.title = object.getString("title");
-                    model.source = object.getString("source");
-                    model.description = object.getString("description");
-                    model.shortDescription = object.getString("shortDescription");
-                    model.alarmText = object.getString("alarmText");
-                    model.enabled = object.getBoolean("enabled");
-                    model.priority = object.getInt("priority");
-                    model.state = object.getInt("state");
-                    model.type = object.getInt("type");
-                    model.notificationId = object.getInt("notificationId");
-                    model.__v = object.getInt("__v");
-                    list.add(model);
+        if (data != null) {
+            if (data.link != null) {
+                JsonObjectRequest objectRequest = new JsonObjectRequest(Request.Method.GET, data.link, null, response -> {
+                    try {
+                        JSONArray jsonArray = response.getJSONArray("data");
+                        ArrayList<AlarmModel> list = new ArrayList<>();
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject object = jsonArray.getJSONObject(i);
+                            AlarmModel model = new AlarmModel();
+                            model._id = object.getString("_id");
+                            model.title = object.getString("title");
+                            model.source = object.getString("source");
+                            model.description = object.getString("description");
+                            model.shortDescription = object.getString("shortDescription");
+                            model.alarmText = object.getString("alarmText");
+                            model.enabled = object.getBoolean("enabled");
+                            model.priority = object.getInt("priority");
+                            model.state = object.getInt("state");
+                            model.type = object.getInt("type");
+                            model.notificationId = object.getInt("notificationId");
+                            model.__v = object.getInt("__v");
+                            list.add(model);
 
-                    if (model.enabled)
-                        new NotificationHelper(getApplicationContext()).sendHighPriorityNotification(model.title, model.shortDescription, AlarmActivity.class, model.priority, model.notificationId, model.state);
-                }
-                Stash.put(Constants.ALARM_LIST, list);
-                Intent intent = new Intent("com.moutamid.alarmapp.ACTION_UPDATE_ALARMS");
-                LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(context, "Error: " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                            if (model.enabled)
+                                new NotificationHelper(getApplicationContext()).sendHighPriorityNotification(model.title, model.shortDescription, AlarmActivity.class, model.priority, model.notificationId, model.state);
+                        }
+                        Stash.put(Constants.ALARM_LIST, list);
+                        Intent intent = new Intent("com.moutamid.alarmapp.ACTION_UPDATE_ALARMS");
+                        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(context, "Error: " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }, error -> {
+                    error.printStackTrace();
+                    Toast.makeText(context, "Error: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                }) {
+                    @Override
+                    public Map<String, String> getHeaders() {
+                        HashMap<String, String> params = new HashMap<>();
+                        String creds = String.format("%s:%s", data.clientId, data.clientSecret);
+                        String auth = "Basic " + Base64.encodeToString(creds.getBytes(), Base64.DEFAULT);
+                        params.put("Authorization", auth);
+                        return params;
+                    }
+                };
+                requestQueue.add(objectRequest);
             }
-        }, error -> {
-            error.printStackTrace();
-            Toast.makeText(context, "Error: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                HashMap<String, String> params = new HashMap<>();
-                String creds = String.format("%s:%s", data.clientId, data.clientSecret);
-                String auth = "Basic " + Base64.encodeToString(creds.getBytes(), Base64.DEFAULT);
-                params.put("Authorization", auth);
-                return params;
-            }
-        };
-
-        requestQueue.add(objectRequest);
+        }
     }
 
     @Override
