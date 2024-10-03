@@ -52,14 +52,6 @@ public class MainActivity extends AppCompatActivity {
             finish();
         });
 
-        binding.scannerView.setOnClickListener(v -> {
-            String[] res = "https://api.automation3000.ch/service/cloud/api/v1/devices/alarms;367j567k6574;67kr567km456n576e".split(";");
-            ApiData data = new ApiData(res[0], res[1], res[2]);
-            Stash.put(Constants.API_DATA, data);
-            startActivity(new Intent(MainActivity.this, AlarmActivity.class));
-            finish();
-        });
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED &&
                     ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED &&
